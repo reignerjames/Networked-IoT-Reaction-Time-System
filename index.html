@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Reaction Game — Results Viewer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root { --bg:#0f172a; --card:#111827; --text:#e5e7eb; --muted:#9ca3af; --accent:#60a5fa; --good:#34d399;}
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; font: 16px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: radial-gradient(1100px 600px at 20% -20%, #1f2937 0, #0b1222 50%, #070b16 100%) fixed;
+      color: var(--text);
+      padding: 28px;
+    }
+    .wrap { max-width: 1000px; margin: 0 auto; }
+    h1 { margin: 0 0 8px; letter-spacing: .3px; }
+    .sub { color: var(--muted); margin-bottom: 18px; }
+    .cards { display: grid; gap: 16px; grid-template-columns: 1fr; }
+    @media (min-width: 900px){ .cards{ grid-template-columns: 2fr 1fr; } }
+
+    .card {
+      background: rgba(17,24,39,.6);
+      border: 1px solid rgba(255,255,255,.05);
+      border-radius: 16px; padding: 16px 16px 6px;
+      box-shadow: 0 6px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.03);
+      backdrop-filter: blur(6px);
+    }
+    .card h2 { margin: 0 0 12px; font-size: 18px; font-weight: 600; }
+    .row { display:flex; gap:10px; align-items:center; justify-content:space-between; margin-bottom:10px; }
+    button {
+      background: linear-gradient(180deg, #1f2937, #0f172a);
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,.12);
+      padding: 8px 12px; border-radius: 10px; cursor: pointer;
+    }
+    button:hover { border-color: var(--accent); }
+    .pill { padding:.3rem .6rem; border:1px solid rgba(255,255,255,.12); border-radius:999px; color:var(--muted); }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid rgba(255,255,255,.08); }
+    th { color: var(--muted); font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; }
+    tbody tr:hover { background: rgba(255,255,255,.03); }
+    .good { color: var(--good); font-weight: 600; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    footer { margin-top: 18px; color: var(--muted); font-size: 13px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Reaction Game — Results</h1>
+    <div class="sub">Live view of <span class="mono">~/Desktop/game.db</span> from your Raspberry Pi.</div>
+
+    <div class="cards">
+      <!-- Left: results table -->
+      <div class="card">
+        <div class="row">
+          <h2>Recent Rounds</h2>
+          <div>
+            <span id="lastSync" class="pill">Last sync: —</span>
+            <button id="refreshBtn" onclick="loadAll()">Refresh</button>
+          </div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th><th>Player</th><th>Score (ms)</th><th>Time played</th><th>Saved</th>
+            </tr>
+          </thead>
+          <tbody id="resultsBody">
+            <tr><td colspan="5">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Right: snapshot and quick stats -->
+      <div class="card">
+        <h2>Current Snapshot</h2>
+        <div id="snapshot">Loading…</div>
+        <hr style="border:0;border-top:1px solid rgba(255,255,255,.08);margin:14px 0">
+        <h2>Quick Stats</h2>
+        <div id="stats">—</div>
+      </div>
+    </div>
+
+    <footer>Auto-refreshes every 5 seconds. Open at <span class="mono">http://raspberrypi.local:8080</span></footer>
+  </div>
+
+  <script>
+    const fmt = (n) => n?.toLocaleString?.() ?? n;
+    function setLastSync() {
+      const t = new Date();
+      document.getElementById('lastSync').textContent = "Last sync: " + t.toLocaleTimeString();
+    }
+
+    async function loadResults() {
+      const body = document.getElementById('resultsBody');
+      body.innerHTML = `<tr><td colspan="5">Loading…</td></tr>`;
+      const res = await fetch('/api/results');
+      const rows = await res.json();
+      if (!rows.length) { body.innerHTML = `<tr><td colspan="5">No data yet.</td></tr>`; return; }
+      body.innerHTML = rows.map(r => `
+        <tr>
+          <td class="mono">${r.id}</td>
+          <td>${r.player_name}</td>
+          <td class="good mono">${fmt(r.score)}</td>
+          <td class="mono">${r.time_played ?? ""}</td>
+          <td class="mono">${r.date_saved ?? ""}</td>
+        </tr>
+      `).join('');
+    }
+
+    async function loadSnapshot() {
+      const box = document.getElementById('snapshot');
+      const res = await fetch('/api/game');
+      const rows = await res.json();
+      if (!rows.length) { box.textContent = "No snapshot saved yet."; return; }
+      const r = rows[0];
+      box.innerHTML = `
+        <div>user_id: <span class="mono">${r.user_id}</span></div>
+        <div>score_1: <span class="mono">${fmt(r.score_1)}</span></div>
+        <div>score_2: <span class="mono">${fmt(r.score_2)}</span></div>
+        <div>score_3: <span class="mono">${fmt(r.score_3)}</span></div>
+      `;
+      const stats = document.getElementById('stats');
+      const nums = [r.score_1, r.score_2, r.score_3].map(Number).filter(n => !isNaN(n));
+      if (nums.length) {
+        const min = Math.min(...nums), max = Math.max(...nums),
+              avg = Math.round(nums.reduce((a,b)=>a+b,0)/nums.length);
+        stats.innerHTML = `
+          <div>Best: <span class="good mono">${fmt(min)} ms</span></div>
+          <div>Worst: <span class="mono">${fmt(max)} ms</span></div>
+          <div>Average: <span class="mono">${fmt(avg)} ms</span></div>
+        `;
+      } else {
+        stats.textContent = "—";
+      }
+    }
+
+    async function loadAll(){
+      await Promise.all([loadResults(), loadSnapshot()]);
+      setLastSync();
+    }
+
+    loadAll();
+    setInterval(loadAll, 5000); // auto-refresh every 5s
+  </script>
+</body>
+</html>
