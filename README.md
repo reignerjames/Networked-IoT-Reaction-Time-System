@@ -10,8 +10,8 @@ Configuring/managing computer systems to perform specific tasks and troubleshoot
 Using information literacy skills to conduct/explain computer systems research and design/build basic computer systems using variety of 
 technology tools, techniques and resources. Raspberry Pi Model 3A+ (rPi) was used for this unit. 
 
-
 "Networked IoT Reaction Time System"
+Stack: Python3, SQLite3, Flask, HTML/CSS GPIO, Wi-Fi/WPA Configuration, TCP/IP Networking, Linux, rPi OS
 
 Features:
 - rPi Model 3A+
@@ -29,10 +29,9 @@ Features:
 - Solderless Breadboard - 830 Tie Point (ZY-102)
 Note: number of items used have not been written down.
 
-Stack: Python3, SQLite3, Flask, HTML/CSS
-
 This project aims to measure the reaction time of the user and display real-time data of results onto a locally hosted website through 
 the rPi and SQLite3 was used to store data of each of the user scores. 
+The unit begins by introducing the student to the Wi-FI/WPA and rPi Operating System Configuration, Ethernet/USB adapter setup, SSH and networking. 
 
 Thank you to Geoff - great tutor. This assessment was ideally for a two or three person group but I wanted to work on it alone. I had bought
 all the hardware personally. The Sense HAT for the rPi includes an 8x8 LED display and a tactile 5-way switch and a myriad of other sensors.
@@ -44,6 +43,9 @@ breakout board to the tactile switch on the breadboard. The Copper Columns helps
 Due to the hardware extensiveness, a heatsink kit was included to support cooling. This concludes all the hardware involved. 
 A python3 script is involved in creating the game.py script and server.py script to create the game and an SQLite3 database to store the game data. 
 Flask/HTML/CSS is implemented for the website.
+
+
+
 
 
 
