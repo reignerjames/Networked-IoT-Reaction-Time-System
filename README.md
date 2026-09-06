@@ -1,7 +1,7 @@
 Queensland University of Technology IFB/ITD102 Unit "Introduction to Computer Systems"
 
 Assessment Task 3 Submission by Reigner Casangcapan (2025)
-Project submission worked out accordingly and implementation of technologies was feature complete.
+Project submission worked out well, according to rubric and feedback, implementation of technologies was also feature complete.
 
 Unit/Course outcomes and overview:
 This project comprises of designing/constructing/configuring a small novel computer system using a mixture of computer technologies.
