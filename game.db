@@ -1,0 +1,9 @@
+CREATE TABLE results (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    player_name TEXT NOT NULL,
+    score INTEGER NOT NULL,
+    time_played TEXT NOT NULL,   
+    date_saved TEXT DEFAULT CURRENT_TIMESTAMP
+)
+
+CREATE TABLE sqlite_sequence(name,seq)
